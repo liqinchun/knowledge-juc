@@ -5,6 +5,7 @@ MESI: 缓存一致性协议
   S: 共享
   I: 无效的
 内存屏障:
+JavaUnsafe类
 volatile:
 final:
 synchornized:
