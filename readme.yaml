@@ -43,9 +43,18 @@ JMM内存模型: java 内存模型，JMM决定一个线程对共享变量的写�
     偏向锁:
     轻量级锁:
     重量级锁:
-
-
-
+    synchronized中锁的膨化过程:
+    无锁
+       偏向锁
+            轻量级锁
+                  重量级锁
+    synchronized修饰方法，锁的粗化:
+      在
+    锁的消除: 指局部变量，在一个线程内部中调用加锁的方法，这个锁不可能会被其他线程获取到。在编译时期，会对上下文进行扫描。去除不可能存在竞争的锁。
+      作用条件：必须开启逃逸分析，因为如果对象逃逸了，那么锁不能被消除。
+      -server -XX:+DoEscapeAnalysis -XX:+EliminateLocks
+    逃逸分析:
+      指一个线程中的对象，可能逃逸到另外一个线程。(局部变量被方法返回)
 AQS:
 CAS:
   ABA问题:
@@ -172,7 +181,7 @@ Fork/Join框架: Fork/Join框架是Java7提供的用于并行执行任务的框�
         3.递归地执行2.4。
     RecursiveTask<T>: 用于有返回值的任务。例如写到磁盘任务
     RcursiveAction: 用于没有返回值的任务.例如计算
-JDK8的并行流:
+  JDK8的并行流:
 
 集合与并发集合:
   HashMap:
@@ -196,6 +205,11 @@ JDK8的并行流:
   CycliBarrier:
   CountDownLatch:
   Semaphore:
+Java对象:
+  对象头:
+
+  data:
+  对齐填充:
 锁:
   synchornized:
   ReentrantLock:
