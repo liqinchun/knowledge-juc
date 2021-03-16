@@ -1,0 +1,216 @@
+缓存行:
+MESI: 缓存一致性协议
+  M: modify 修改
+  E: 独享
+  S: 共享
+  I: 无效的
+内存屏障:
+volatile:
+final:
+synchornized:
+线程通信方式:
+  共享内存: 线程之前共享程序的公共状态，通过读写内存中的公共状态进行隐式通信
+  消息传递: 线程之间通过发送消息类进行显式通信
+JMM内存模型: java 内存模型，JMM决定一个线程对共享变量的写入何时对另一个线程可见。
+  重排序: 重排序是指编译器和处理器为了优化程序性能而对指令序列进行重新排序的一种手段。在不影响程序执行结果的情况下，允许重排序.
+  顺序一致性:
+  as-if-serial: 不管怎么重排序，单个线程的执行结果不能被改变。
+  happen-before:  如果一个操作happens-before另一个操作，那么第一个操作的执行结果将对第二个操作可见，而且第一个操作的执行熟悉怒排在第二个操作之前。
+    遵守该语义，保证多线程的执行结果不会被改变。
+    规则:
+      ...
+
+  同步原语:
+    synchornized:
+    volatile:
+    final:
+原子操作: 一个操作要么成功，要么失败。不能被拆分。
+  atomix:
+    AtomixBoolean:
+    AtoicInteger:
+    AtomicLong:
+    AtomicIntegerArray:
+    AtomicLongArray:
+    AtomicReferenceArray:
+    AtomicReference:
+    AtomicReferenceArrayFieldUpdater:
+    AtomicIntegerFieldUpdater: 原子更新整型的字段的更新器.
+    AtomicLongFieldUpdater: 原子更新长整型字段的更新器
+    AtomicStampedRerence: 原子更新带有版本号的引用类型
+  CAS: compare and swap
+  锁:
+    偏向锁:
+    轻量级锁:
+    重量级锁:
+
+
+
+AQS:
+CAS:
+  ABA问题:
+ReentrantLock:
+线程:
+  线程实现方式:
+    Runnable:
+    Thread:
+    Callable: 无返回值
+Future:
+线程池:
+  使用场景:
+    1.单个任务执行时间短。
+    2.需要处理的任务数量很大。
+  线程池优势:
+    1.重用存在的线程，减少线程创建和消亡的开销，减少资源消耗。
+    2.提高响应速度，当任务到达时，不需要创建线程就能立即执行。
+    3.提高线程的可管理行，线程是稀缺资源，如果无限制的创建，不仅会消耗系统资源，还会降低系统的稳定性，使用线程池可以进行统一的分配调优和监控。
+  线程池状态:
+    Running: 线程池一旦被创建就变为Running。
+    SHUTDOWN: 不在接收新任务，但是能处理已添加的任务。对应方法shutdown()后的状态。
+    STOP: 不接收新任务，不处理已添加的任务，中断当前正在执行的任务。
+    TIDYING: 所有任务都已经终止。SHUTDOWN状态下线程池中、阻塞队列中的任务为空，STOP状态下，线程池任务为空。
+    TERMINATED: 线程池彻底终止
+  线程池监控方法:
+    1. public long getTaskCount() //线程池已执行与未执行的任务总数
+    2. public long getCompletedTaskCount() //已完成的任务数
+    3. public int getPoolSize() //线程池当前的线程数
+    4. public int getActiveCount() //线程池中正在执行任务的线程数量
+  线程池工作流程:
+    1. 创建线程池
+    2. 创建线程池任务并submit
+    3. 核心线程有闲置，核心线程处理任务
+    4. 核心线程没有闲置，阻塞队列没有满，添加到阻塞队列中。
+    5. 核心线程没有闲置，阻塞队列满了，线程数没有达到最大线程数。创建新线程处理新任务。
+    6. 核心线程没有闲置，阻塞队列满了，线程数也达到最大线程数。使用拒绝策略。
+  线程池框架: Executor
+      execute: 执行Runnable类型的任务。
+      submit: 提交Callable和Runnable任务，并返回代表此任务的Future对象
+      shutdown(): 在完成已提交任务后不在接收新任务，并关闭。
+      shutdownNow(): 停止当前所有的任务，不在接收新的任务，并关闭。
+      isTerminated(): 获取是否所有任务都执行完毕。
+      isShutdown(): 获取ExecutorService已被关闭。
+      ctl:
+  线程池实现: 通过实现Executor接口
+    ThreadPoolExecutor: 默认线程池
+      构造函数参数含义:
+        corePoolSize: 核心线程池数量
+        maximumPoolSize: 最大线程池数量
+        keepAliveTime: 非核心线程闲置时间
+        unit: 时间单位
+        workQueue: 阻塞队列
+          1. ArrayBlockingQueue 基于数组的有界阻塞队列，按FIFO排序任务。
+          2. LinkedBlockingQueue 基于链表的阻塞队列，按FIFO排序，吞吐量通常高于ArrayBlockingQueue
+          3. SynchronousQueue 只有一个元素，当队列中有元素时，每一个插入操作必须等另一个线程调用移除操作。否则会阻塞
+          4. PriorityBlockingQueue 具有优先级的无界阻塞队列
+        threadFactory: 创建线程的线程工厂，默认使用Executors.defaultThreadFactory()
+        RejectedExecutionHandler: 拒绝策略，默认无
+          1. AbortPolicy 直接抛出异常
+          2. CallerRunsPolicy 用调用者所在的线程来执行任务
+          3. DiscardOldestPolicy 丢弃阻塞队列中靠最前的任务，并执行当前任务；
+          4. DiscardPolicy 直接丢弃任务
+          5. 实现RejectedExecutionHandler接口，自定义。
+    ScheduledThreadPoolExecutor: 定时
+      DelayedWorkQueue: 阻塞队列，基于堆实现。
+      SchduledFutureTask:
+  提交任务:
+    1.public void execute() 提交任务无返回值
+    2.public Future<?> submit() 提交任务有返回值
+  任务性质类型:
+    CPU密集型: 计算密集型，要进行大量的计算、消耗CPU资源。
+      线程数: CPU核数+1
+      语言选择: C语言最佳
+    IO密集型: 涉及到网络、磁盘IO的任务。
+      特点: CPU消耗少，任务大部分时间都在等待IO操作完成。
+      线程数: ((线程等待时间+线程CPU时间)/线程CPU时间) * CPU数目
+      语言选择: 脚本语言最佳
+
+
+
+
+Fork/Join框架: Fork/Join框架是Java7提供的用于并行执行任务的框架，是一个把大任务分割成若干个小任务，最终汇总每个小任务结果得到大任务结果的框架。
+  算法:
+    分治算法:
+    工作窃取算法:
+      实现: 使用双端队列，窃取任务的线程在尾部拿任务，被窃取任务线程在头部获取任务。
+      优点: 充分利用线程进行并行计算，减少线程间的竞争。
+      缺点: 1. 在某些情况下(双端队列里只有一个任务时，也会存在竞争)存在不必要竞争。 2. 消耗了更多的系统资源(会创建多个线程和多个双端队列)。
+  Fork: 把一个大任务切分为若干子任务并行。
+  Join: 合并子任务的执行结果，得到大任务的结果。
+  ForkJoinPool: ForkJoinPool是ExecutorService的实现类，支持将任务拆分为多个小任务并行计算，再把多个小任务的结果合成总的计算结果。
+    ForkJoinPool 不是为了替代 ExecutorService，而是它的补充。适合CPU密集型的任务。
+    工作流程:
+      1.ForkJoinPool 的每个工作线程都维护着一个工作队列（WorkQueue），这是一个双端队列（Deque），里面存放的对象是任务 （ForkJoinTask）。
+      2.每个工作线程在运行中产生新的任务（通常是因为调用了 fork()）时，会放入工作队列的队尾，并且工作线程在处理自己的工作 队列时，使用的是 LIFO 方式，也就是说每次从队尾取出任务来执行。
+      3. 每个工作线程在处理自己的工作队列同时，会尝试窃取一个任务（或是来自于刚刚提交到 pool 的任务，或是来自于其他工作线 程的工作队列），窃取的任务位于其他线程的工作队列的队首，也就是说工作线程在窃取其他工作线程的任务时，使用的是 FIFO 方式。
+      4. 在遇到 join() 时，如果需要 join 的任务尚未完成，则会先处理其他任务，并等待其完成。
+      5. 在既没有自己的任务，也没有可以窃取的任务时，进入休眠。
+    代码编写流程:
+      1.创建ForkJoin任务,任务在执行过程中需要提供fork()和join()两种机制(任务拆分机制)。
+      通过继承RecursiveAction和RecursiveTask实现。
+      2.创建ForkJoinPool,将ForkJoin任务添加(shubmit(task))到ForkJoinPool中.
+      3.关闭ForkJoinPool,通过shutdown()方法。
+    方法:
+      构造函数:
+      submit(ForkJoinTask<T> task): ForkJoinPool 自身拥有工作队列，这些工作队列的作用是用来接收由外部线程（非 ForkJoinThread 线程）提交过来的任务，而这些工作 队列被称为 submitting queue 。
+      invoke(ForkJoinTask<T> task):
+    内部类:
+      ManagedBlocker: ForkJoinPool的内部类，如果ForkJoinPool任务存在I/O、线程间同步问题、sleep()等会造成线程长时间阻塞的问题时，配合使用ManagedBlocker。
+        方法:
+          block(): 提供阻塞当前线程的条件,例如等待获取锁
+          isReleasable(): 上面的block()阻塞，返回true
+      WorkQueue:
+
+  ForkJoinTask:
+      fork(): 将任务推到当前工作线程的工作队列中
+      join(): 如果发现任务做完了，会立刻返回结果
+        1. 检查调用 join() 的线程是否是 ForkJoinThread 线程。如果不是（例如 main 线程），则阻塞当前线程，等待任务完成。如果 是，则不阻塞。
+        2.查看任务的完成状态.
+          2.1如果已经完成，直接返回结果。
+          2.2如果任务尚未完成，但处于自己的工作队列内，则完成它。
+          2.3如果任务已经被其他的工作线程偷走，则窃取这个小偷的工作队列内的任务（以 FIFO 方式），执行，以期帮助它早日完成欲 join 的任务。
+          2.4如果偷走任务的小偷也已经把自己的任务全部做完，正在等待需要 join 的任务时，则找到小偷的小偷，帮助它完成它的任务。
+        3.递归地执行2.4。
+    RecursiveTask<T>: 用于有返回值的任务。例如写到磁盘任务
+    RcursiveAction: 用于没有返回值的任务.例如计算
+JDK8的并行流:
+
+集合与并发集合:
+  HashMap:
+    jdk8中的hashMap:
+      数据结构: 数组+链表+红黑树
+  Set:
+  Tree:
+  ConcurrentHashMap:
+    jdk7实现: ReentrantLock
+    jdk8实现: 分段锁+CAS
+  ConcurrentLinkedQueue: 基于链表的无界线程安全队列，先进先出，采用CAS算法实现。
+  BlockingQueue: 阻塞队列
+  CopyOnWrite机制: 适用于读多写少的情况，最大程度的提高读的效率。
+    核心思想: 读写分离，空间换时间，避免为保证并发安全导致的激烈的锁竞争。
+    总结:
+      1. CopyOnWrite适用于读多写少的情况，最大程度的提高读的效率；
+      2. CopyOnWrite是最终一致性，在写的过程中，原有的读的数据是不会发生更新的，只有新的读才能读到最新数据；
+      3. 如何使其他线程能够及时读到新的数据，需要使用volatile变量；
+      4. 写的时候不能并发写，需要对写操作进行加锁；
+开发工具类:
+  CycliBarrier:
+  CountDownLatch:
+  Semaphore:
+锁:
+  synchornized:
+  ReentrantLock:
+  ReentrantReadWriteLock:
+  Lock接口:
+  Condition接口:
+  LockSupport接口:
+ThreadLocal:
+Fork/Join
+Disruptor并发框架
+
+
+
+
+
+
+
+
+
